@@ -1,4 +1,5 @@
 import sqlalchemy
+from sqlalchemy.orm.session import Session
 from sqlalchemy.sql.elements import False_, True_
 from sqlalchemy.sql.expression import insert, select
 import discord_bot.model as model
@@ -8,13 +9,14 @@ from sqlalchemy import create_engine
 class DBManager():
     def __init__(self) -> None:
         self.engine = create_engine(
-            "sqlite:///db.sqlite3", future=True)
+            "sqlite:///db.sqlite3", future=True, echo=True)
         model.Base.metadata.create_all(self.engine)
         self.initSkill()
 
     def initSkill(self):
         stmt = select(model.SkillModel)
-        with sqlalchemy.orm.Session(self.engine, future=True) as session:
+        with Session(self.engine, future=True) as session:
+            session : Session
             result = session.execute(stmt).all()
             if len(result) == 0:
                 session.add_all(
@@ -128,21 +130,25 @@ class DBManager():
                 )
                 session.commit()
 
-    def initSkill(self):
+    def initAsset(self):
         stmt = select(model.AssetModel)
-        session = sqlalchemy.orm.Session(self.engine, future=True)
-        result = session.execute(stmt).all()
-        if len(result) == 0:
-            session.add_all(
-                [
-                    model.AssetModel(
-                        name=""
-                    )
-                ]
-            )
-            session.commit()
-        session.close()
+        with Session(self.engine, future=True) as session:
+            session : Session
+            result = session.execute(stmt).all()
+            if len(result) == 0:
+                session.add_all(
+                    [
+                        model.AssetModel(
+                            name=""
+                        )
+                    ]
+                )
+                session.commit()
 
     def addUser(self, _user_name, _user_id) -> None:
-        stmt = insert(model.UserModel).values(
-            user_name=_user_name, user_discord_id=_user_id)
+        with Session(self.engine, future=True) as session:
+            session : Session
+            session.add(
+                model.UserModel(user_name=_user_name, user_discord_id=_user_id)
+            )
+            session.commit()
