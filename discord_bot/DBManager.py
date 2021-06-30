@@ -125,6 +125,62 @@ class DBManager():
                             characteristic_2="DEX",
                             description="Vous êtes à l'aise avec les outils et le travail manuel. Vous avez appris des techniques dans des domaines très différents. Sans être un pe cialiste d'aucun, vous vous débrouillez assez bien.",
                             clutter_malus=False
+                        ),
+                        model.SkillModel(
+                            name="Perception",
+                            characteristic_1="INT",
+                            characteristic_2="WIS",
+                            description="C'est la compétence reine pour voir, entendre, goûter, sentir votre environnement. Vous pouvez aussi fouiller une pièce, repérer une embuscade, examiner un lieu, etc...",
+                            clutter_malus=False
+                        ),
+                        model.SkillModel(
+                            name="Psychologie",
+                            characteristic_1="INT",
+                            characteristic_2="WIS",
+                            description="Utilisez cette compétence résister à toutes les tentatives de manoeuvre sociale et d'influence. Vous pouvez aussi l'utiliser pour comprendre les motivations et les émotions des gens que vous côtoyez ou dont vous avez témoignage.",
+                            clutter_malus=False
+                        ),
+                        model.SkillModel(
+                            name="Renseignements",
+                            characteristic_1="WIS",
+                            characteristic_2="CHA",
+                            description="Cette compétence vous servira à trouver des renseignements en traînant dans des endroits publics et en posant des questions. Il faut l'équivalent d'une demi-journée pour obtenir des informations. En général, vous dépensez 1d6 DO en verres payés à vos informateurs. Vous pouvez aussi utiliser cette compétence pour vous y retrouver dans les méandres d'une bureaucratie tentaculaire.",
+                            clutter_malus=False
+                        ),
+                        model.SkillModel(
+                            name="Représentation",
+                            characteristic_1="CHA",
+                            characteristic_2="WIS",
+                            description="Cette compétence est celle des artistes, saltimbanques, musiciens, acteurs et autres pratiquants des arts vivants.",
+                            clutter_malus=False
+                        ),
+                        model.SkillModel(
+                            name="Reputation",
+                            characteristic_1="CHA",
+                            characteristic_2="WIS",
+                            description="Vous cherchez vraiment à être connu partout parce que, quand même, c'est bon la gloire parfois. En jouant cette compétence contre une difficulté qui dépend de la nature des personnes à qui vous vous adressez (de 15 pour des gens de votre pays à 40 et plus pour de parfaits étrangers loin de chez vous), vous pouvez vous faire reconnaître et, peut-être, profiter de votre célébrité.",
+                            clutter_malus=False
+                        ),
+                        model.SkillModel(
+                            name="Sécurité",
+                            characteristic_1="DEX",
+                            characteristic_2="INT",
+                            description="Cette compétence est pratique pour crocheter des serrures et désamorcer (ou poser) des pièges.",
+                            clutter_malus=False
+                        ),
+                        model.SkillModel(
+                            name="Subterfuge",
+                            characteristic_1="DEX",
+                            characteristic_2="INT",
+                            description="Compétence des illusionnistes et des prestidigitateurs, elle est utile pour faire des tours de passe-passe, du vol à l'étalage ou à la tire, pour vous faufiler dans les passages étroits, vous contorsionner ou échapper à des liens. On peut résis ter à l'utilisation de cette compétence grâce à un jet de *Perception*.",
+                            clutter_malus=True
+                        ),
+                        model.SkillModel(
+                            name="Survie",
+                            characteristic_1="CON",
+                            characteristic_2="WIS",
+                            description="La compétence préférée de tous les asociaux qui s'en servent pour chasser, monter un camp, suivre des traces, trouver leur chemin et de manière générale survivre en milieu hostile.",
+                            clutter_malus=False
                         )
                     ]
                 )
@@ -144,6 +200,14 @@ class DBManager():
                     ]
                 )
                 session.commit()
+
+    def addAsset(self, _name, _description) -> None:
+        with Session(self.engine, future=True) as session:
+            session : Session
+            session.add(
+                model.AssetModel(name=_name, description=_description)
+            )
+            session.commit()
 
     def addUser(self, _user_name, _user_id) -> None:
         with Session(self.engine, future=True) as session:
