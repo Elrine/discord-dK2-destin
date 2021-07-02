@@ -1,7 +1,10 @@
+from operator import and_, mod
+from typing import List, Tuple, Union
 import sqlalchemy
 from sqlalchemy.orm.session import Session
 from sqlalchemy.sql.elements import False_, True_
-from sqlalchemy.sql.expression import insert, select
+from sqlalchemy.sql.expression import insert, select, update
+from sqlalchemy.sql.functions import mode
 import discord_bot.model as model
 from sqlalchemy import create_engine
 
@@ -12,11 +15,12 @@ class DBManager():
             "sqlite:///db.sqlite3", future=True, echo=True)
         model.Base.metadata.create_all(self.engine)
         self.initSkill()
+        self.initAsset()
 
     def initSkill(self):
-        stmt = select(model.SkillModel)
         with Session(self.engine, future=True) as session:
             session : Session
+            stmt = select(model.SkillModel)
             result = session.execute(stmt).all()
             if len(result) == 0:
                 session.add_all(
@@ -187,16 +191,13 @@ class DBManager():
                 session.commit()
 
     def initAsset(self):
-        stmt = select(model.AssetModel)
         with Session(self.engine, future=True) as session:
             session : Session
+            stmt = select(model.AssetModel)
             result = session.execute(stmt).all()
             if len(result) == 0:
                 session.add_all(
                     [
-                        model.AssetModel(
-                            name=""
-                        )
                     ]
                 )
                 session.commit()
@@ -216,3 +217,71 @@ class DBManager():
                 model.UserModel(user_name=_user_name, user_discord_id=_user_id)
             )
             session.commit()
+
+    def createCharacter(self, _character_name, **kwargs) -> Union[model.CharacterModel, None]:
+        with Session(self.engine, future=True) as session:
+            session : Session
+            user_id = None
+            if "user_id" in kwargs:
+                user_id = kwargs['user_id']
+            elif 'user_discord_id' in kwargs:
+                stmt = select(model.UserModel.id).where(model.UserModel.user_discord_id == kwargs['user_discord_id'])
+                user_id = session.execute(stmt).scalars().first()
+            if user_id != None:
+                character = model.CharacterModel(name=_character_name, user_id=user_id)
+                session.add(
+                    character
+                )
+                session.flush()
+                stmt = select(model.SkillModel.id)
+                for row in session.execute(stmt).scalars().all():
+                    session.add(model.CharacterSkillModel(character.id, row))
+                session.commit()
+                return character
+            else:
+                return None
+    
+    def getCharacters(self, **kwargs) -> List[model.CharacterModel]:
+        with Session(self.engine, future=True) as session:
+            session : Session
+            user_id = None
+            if "user_id" in kwargs:
+                user_id = kwargs['user_id']
+            elif 'user_discord_id' in kwargs:
+                stmt = select(model.UserModel.id).where(model.UserModel.user_discord_id == kwargs['user_discord_id'])
+                user_id = session.execute(stmt).scalars().first()
+            if user_id != None:
+                stmt = select(model.CharacterModel).where(model.CharacterModel.user_id == user_id)
+                return session.execute(stmt).scalars().all()
+            else:
+                return []
+
+    def getCharacterSkill(self, character : model.CharacterModel) -> List[Tuple[model.CharacterSkillModel, model.SkillModel]]:
+        with Session(self.engine, future=True) as session:
+            session : Session
+            stmt = select(model.CharacterSkillModel, model.SkillModel).where(model.CharacterSkillModel.character_id == character.id).join(model.SkillModel, model.CharacterSkillModel.skill_id == model.SkillModel.id)
+            return session.execute(stmt).all()
+
+    def updateCharacterSkill(self, character_skill : model.CharacterSkillModel) -> None:
+        with Session(self.engine, future=True) as session:
+            session : Session
+            stmt = update(model.CharacterSkillModel).where(model.CharacterSkillModel.id == character_skill.id).values(
+                degre=character_skill.degre,
+                bonus=character_skill.degre
+            )
+            session.execute(stmt)
+
+    def updateCharacter(self, character : model.CharacterModel) -> None:
+        with Session(self.engine, future=True) as session:
+            session : Session
+            stmt = update(model.CharacterModel).where(model.CharacterModel.id == character.id).values(
+                name=character.name,
+                level=character.level,
+                strength=character.strength,
+                dexterity=character.dexterity,
+                constitution=character.constitution,
+                intelligence=character.intelligence,
+                wisdom=character.wisdom,
+                charisma=character.charisma
+            )
+            session.execute(stmt)

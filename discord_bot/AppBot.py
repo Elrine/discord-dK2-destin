@@ -1,3 +1,4 @@
+from discord_bot.DBManager import DBManager
 import re
 
 from random import randrange
@@ -7,6 +8,7 @@ class AppBot():
     def __init__(self, _token):
         self.token = _token
         self.bot = commands.Bot(command_prefix="/")
+        self.manage = DBManager()
 
     def setupCommand(self):        
         @self.bot.event

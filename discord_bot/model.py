@@ -5,13 +5,23 @@ from sqlalchemy.sql.sqltypes import Boolean, Integer, String
 
 Base = declarative_base()
 
-character_skill = Table(
-    "character_skill",
-    Base.metadata,
-    Column("character_id", Integer, ForeignKey("character.id")),
-    Column("skill_id", Integer, ForeignKey("skill.id")),
-    Column("degre", Integer)
-)
+class CharacterSkillModel(Base):
+    __tablename__ = "character_skill"
+    id = Column(Integer, primary_key=True)
+    character_id = Column(Integer, ForeignKey("character.id"))
+    skill_id = Column(Integer,  ForeignKey("skill.id"))
+    degre = Column(Integer)
+    bonus = Column(Integer)
+
+    def __init__(self, _character_id, _skill_id, _degre=0, _bonus=0) -> None:
+        super().__init__()
+        self.character_id = _character_id
+        self.skill_id = _skill_id
+        self.degre = _degre
+        self.bonus = _bonus
+
+    def __repr__(self) -> str:
+        return f"CharacterSkill(id={self.id}, character_id={self.character_id}, skill_id={self.skill_id}, degre={self.degre}, bonus={self.bonus})"
 
 character_asset = Table(
     "character_asset",
@@ -58,7 +68,7 @@ class CharacterModel(Base):
         self.constitution = constitution
         self.intelligence = intelligence
         self.wisdom = wisdom
-        self.charisma - charisma
+        self.charisma = charisma
 
     def __repr__(self) -> str:
         return f"Character(id={self.id!r}, level={self.level!r}, strength={self.strength!r}), dexterity={self.dexterity!r}), constitution={self.constitution!r}), intelligence={self.intelligence!r}), wisdom={self.wisdom!r}), charisma={self.charisma!r})"
