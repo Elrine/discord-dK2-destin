@@ -1,13 +1,10 @@
-from operator import and_, mod
 from typing import List, Tuple, Union
 import sqlalchemy
 from sqlalchemy.orm.session import Session
 from sqlalchemy.sql.elements import False_, True_
 from sqlalchemy.sql.expression import insert, select, update
-from sqlalchemy.sql.functions import mode
 import discord_bot.model as model
 from sqlalchemy import create_engine
-
 
 class DBManager():
     def __init__(self) -> None:
@@ -21,6 +18,7 @@ class DBManager():
         with Session(self.engine, future=True) as session:
             session : Session
             stmt = select(model.SkillModel)
+            
             result = session.execute(stmt).all()
             if len(result) == 0:
                 session.add_all(
@@ -240,7 +238,19 @@ class DBManager():
                 return character
             else:
                 return None
+
+    def linkCharacterAsset(self, character : model.CharacterModel, asset : model.AssetModel) -> None:
+        with Session(self.engine, future=True) as session:
+            session : Session
+            stmt = insert(model.character_asset).values(character_id=character.id, asset_id=asset.id)
+            session.execute(stmt)
     
+    def getUser(self, user_discord_id) -> Union[None, model.UserModel]:
+        with Session(self.engine, future=True) as session:
+            session : Session
+            stmt = select(model.UserModel).where(model.UserModel.user_discord_id == user_discord_id)
+            return session.execute(stmt).scalars().first()
+
     def getCharacters(self, **kwargs) -> List[model.CharacterModel]:
         with Session(self.engine, future=True) as session:
             session : Session
